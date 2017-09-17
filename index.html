@@ -10,33 +10,6 @@
 <script src="https://unpkg.com/xstream@10.8.0/dist/xstream.js"></script>
 <script>window.xs = xstream.default;</script>
 
-<script id="jsbin-javascript">
-  'use strict';
-
-  xs.periodic(1000).//  ---!---!---!---!
-  fold(function(prev) {
-    return prev + 1;
-  }, 0).// 0---1---2---3---4
-    map(function(i) {
-    return 'Seconds elapsed ' + i;
-  }).subscribe({
-    next: function next(message) {
-      var app = document.querySelector('#app');
-      app.textContent = message;
-    }
-  });
-</script>
-
-<script id="jsbin-source-javascript" type="text/javascript">
-  xs.periodic(1000).//  ---!---!---!---!
-  fold(prev => prev + 1, 0).// 0---1---2---3---4
-    map(i => `Seconds elapsed ${i}`).subscribe({
-    next: message => {
-      const app = document.querySelector('#app');
-      app.textContent = message;
-    }
-  });
-
-</script>
+<script src="dist/app.js"></script>
 </body>
 </html>
