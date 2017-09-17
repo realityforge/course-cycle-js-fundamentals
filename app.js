@@ -16,8 +16,8 @@ function domDriver(text$) {
   });
 }
 
-function logDriver(text$) {
-  text$.subscribe({
+function logDriver(msg$) {
+  msg$.subscribe({
     next: message => {
       console.log(message);
     }
