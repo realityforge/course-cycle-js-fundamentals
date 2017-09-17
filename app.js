@@ -1,6 +1,8 @@
 function main() {
   return {
+    // This data goes to DOM effect
     DOM: xs.periodic(1000).fold(prev => prev + 1, 0).map(i => `Seconds elapsed ${i}`),
+    // This data should go to Log effect
     Log: xs.periodic(2000).fold(prev => prev + 1, 0)
   };
 }
