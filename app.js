@@ -1,29 +1,44 @@
-const { h1, button, div, makeDOMDriver } = CycleDOM;
+const { h1, h4, a, button, div, makeDOMDriver } = CycleDOM;
+const { makeHTTPDriver } = CycleHTTPDriver;
 
 function main(sources) {
-  const decEvent$ = sources.DOM.select('.dec').events('click');
-  const incEvent$ = sources.DOM.select('.inc').events('click');
-  // Decrement stream decrements one for each click
-  const dec$ = decEvent$.map(e => -1);
-  // Inccrement stream decrements one for each click
-  const inc$ = incEvent$.map(e => 1);
+  //button click
+  const getEvent$ = sources.DOM.select('.get-first').events('click');
 
-  // Merge the inc$ and dec$ stream which just give the changes to number stream
-  const delta$ = xs.merge(dec$, inc$);
+  //send rest request
+  const request$ = getEvent$.map(e => (
+    // Prepare data representing a request
+    {
+      url: 'https://jsonplaceholder.typicode.com/users/1',
+      method: 'GET',
+      // This is an arbitrary label so can be referenced later
+      category: 'user-data'
+    }
+  ));
 
-  // Fold starts with an initial state 0, then for each incoming event on stream
-  // will run the accumulation actions, replace state as we go
-  const number$ = delta$.fold((prev, x) => prev + x, 0);
+  //receive rest response
+  const response$ = sources.HTTP
+                           // Reference category from above
+                           .select('user-data')
+                           .flatten()
+                           //get json data out of body
+                           .map(response => response.body);
 
-  return {
-    DOM: number$.map(number =>
-      div([
-        button('.dec', 'Decrement'),
-        button('.inc', 'Increment'),
-        h1('Count: ' + number)
+  // display data
+  const virtualDom$ = response$.startWith({}).map(response =>
+    div([
+      button('.get-first', 'Get First User'),
+      div('.user-details', [
+        h1('.user-name', response.name),
+        h4('.user-email', response.email),
+        a('.user-website', { attrs: { href: response.website } }, response.website)
       ])
-    )
+    ])
+  );
+  return {
+    DOM: virtualDom$,
+    HTTP: request$
   };
 }
 
-Cycle.run(main, { DOM: makeDOMDriver('#app') });
+Cycle.run(main, { DOM: makeDOMDriver('#app'), HTTP: makeHTTPDriver() });
