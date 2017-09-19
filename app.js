@@ -1,18 +1,26 @@
-const { h1, label, input, hr, div, makeDOMDriver } = CycleDOM;
+const { h1, button, div, makeDOMDriver } = CycleDOM;
 
 function main(sources) {
-  // Define a stream that contains "input" events frin input field
-  const inputEvent$ = sources.DOM.select('input.field').events('input');
-  // Map the stream to text
-  // Make sure we start with a single event so that there is something to map in following section
-  const name$ = inputEvent$.map(e => e.target.value).startWith('');
+  const decEvent$ = sources.DOM.select('.dec').events('click');
+  const incEvent$ = sources.DOM.select('.inc').events('click');
+  // Decrement stream decrements one for each click
+  const dec$ = decEvent$.map(e => -1);
+  // Inccrement stream decrements one for each click
+  const inc$ = incEvent$.map(e => 1);
+
+  // Merge the inc$ and dec$ stream which just give the changes to number stream
+  const delta$ = xs.merge(dec$, inc$);
+
+  // Fold starts with an initial state 0, then for each incoming event on stream
+  // will run the accumulation actions, replace state as we go
+  const number$ = delta$.fold((prev, x) => prev + x, 0);
+
   return {
-    DOM: name$.map(name =>
+    DOM: number$.map(number =>
       div([
-        label(['Name:']),
-        input('.field', { attrs: { type: 'text' } }),
-        hr(),
-        h1('Hello ' + name)
+        button('.dec', 'Decrement'),
+        button('.inc', 'Increment'),
+        h1('Count: ' + number)
       ])
     )
   };
