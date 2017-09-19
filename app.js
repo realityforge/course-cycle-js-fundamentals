@@ -1,21 +1,21 @@
-const { h1, makeDOMDriver } = CycleDOM;
+const { h1, label, input, hr, div, makeDOMDriver } = CycleDOM;
 
 function main(sources) {
-  const mouseover$ = sources.DOM.select('h1').events('mouseover');
+  // Define a stream that contains "input" events frin input field
+  const inputEvent$ = sources.DOM.select('input.field').events('input');
+  // Map the stream to text
+  // Make sure we start with a single event so that there is something to map in following section
+  const name$ = inputEvent$.map(e => e.target.value).startWith('');
   return {
-    DOM: mouseover$.startWith(null)
-                   .map(() => xs.periodic(1000).fold(prev => prev + 1, 0))
-                   .flatten().map(i => h1(`Seconds elapsed ${i}`)),
-    Log: xs.periodic(2000).fold(prev => prev + 1, 0)
+    DOM: name$.map(name =>
+      div([
+        label(['Name:']),
+        input('.field', { attrs: { type: 'text' } }),
+        hr(),
+        h1('Hello ' + name)
+      ])
+    )
   };
 }
 
-function logDriver(msg$) {
-  msg$.subscribe({
-    next: message => {
-      console.log(message);
-    }
-  });
-}
-
-Cycle.run(main, { DOM: makeDOMDriver('#app'), Log: logDriver });
+Cycle.run(main, { DOM: makeDOMDriver('#app') });
