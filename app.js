@@ -1,4 +1,4 @@
-const { h1, h4, a, button, div, label, input, makeDOMDriver } = CycleDOM;
+const { div, label, input, makeDOMDriver } = CycleDOM;
 
 // This is all the input effects or intents (it represents user intentions)
 function intent(domSource) {
