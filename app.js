@@ -45,6 +45,8 @@ function labeledSlider(sources) {
 }
 
 function main(sources) {
+  const { isolateSource, isolateSink } = sources.DOM;
+
   const weightProps$ = xs.of({
     label: 'Weight',
     units: 'kg',
@@ -52,12 +54,9 @@ function main(sources) {
     max: 150,
     initial: 40
   });
-  const weightDomSource = sources.DOM.select('.weight');
+  const weightDomSource = isolateSource(sources.DOM, '.weight');
   const weightSinks = labeledSlider(Object.assign({}, sources, { DOM: weightDomSource, props: weightProps$ }));
-  const weightVDOM$ = weightSinks.DOM.map(vdom => {
-    vdom.sel += '.weight';
-    return vdom;
-  });
+  const weightVDOM$ = isolateSink(weightSinks.DOM, '.weight');
   const heightProps$ = xs.of({
     label: 'Height',
     units: 'cm',
@@ -65,12 +64,9 @@ function main(sources) {
     max: 220,
     initial: 140
   });
-  const heightDomSource = sources.DOM.select('.height');
+  const heightDomSource = isolateSource(sources.DOM, '.height');
   const heightSinks = labeledSlider(Object.assign({}, sources, { DOM: heightDomSource, props: heightProps$ }));
-  const heightVDOM$ = heightSinks.DOM.map(vdom => {
-    vdom.sel += '.height';
-    return vdom;
-  });
+  const heightVDOM$ = isolateSink(heightSinks.DOM, '.height');
 
   const vdom$ =
     xs.combine(weightVDOM$, heightVDOM$).map(([weightVDOM, heightVDOM]) => {
