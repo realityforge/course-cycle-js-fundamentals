@@ -45,15 +45,43 @@ function labeledSlider(sources) {
 }
 
 function main(sources) {
-  const props$ = xs.of({
+  const weightProps$ = xs.of({
     label: 'Weight',
     units: 'kg',
     min: 40,
     max: 150,
     initial: 40
   });
-  const sinks = labeledSlider(Object.assign(sources, { props: props$ }));
-  return sinks;
+  const weightDomSource = sources.DOM.select('.weight');
+  const weightSinks = labeledSlider(Object.assign({}, sources, { DOM: weightDomSource, props: weightProps$ }));
+  const weightVDOM$ = weightSinks.DOM.map(vdom => {
+    vdom.sel += '.weight';
+    return vdom;
+  });
+  const heightProps$ = xs.of({
+    label: 'Height',
+    units: 'cm',
+    min: 140,
+    max: 220,
+    initial: 140
+  });
+  const heightDomSource = sources.DOM.select('.height');
+  const heightSinks = labeledSlider(Object.assign({}, sources, { DOM: heightDomSource, props: heightProps$ }));
+  const heightVDOM$ = heightSinks.DOM.map(vdom => {
+    vdom.sel += '.height';
+    return vdom;
+  });
+
+  const vdom$ =
+    xs.combine(weightVDOM$, heightVDOM$).map(([weightVDOM, heightVDOM]) => {
+      return div([
+        weightVDOM,
+        heightVDOM
+      ]);
+    });
+  return {
+    DOM: vdom$
+  };
 }
 
 Cycle.run(main,
