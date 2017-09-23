@@ -1,4 +1,4 @@
-const { div, label, input, makeDOMDriver } = CycleDOM;
+const { h4, div, label, input, makeDOMDriver } = CycleDOM;
 const isolate = CycleIsolate.default;
 
 // This is all the input effects or intents (it represents user intentions)
@@ -20,7 +20,7 @@ function model(actions, props$) {
         units: props.units
       };
     });
-  }).flatten();
+  }).flatten().remember();
 }
 
 //This is the output effects aka the view
@@ -41,13 +41,12 @@ function labeledSlider(sources) {
   const state$ = model(actions, props$);
   const virtualDom$ = view(state$);
   return {
-    DOM: virtualDom$
+    DOM: virtualDom$,
+    value: state$.map(state => state.value)
   };
 }
 
 function main(sources) {
-  const { isolateSource, isolateSink } = sources.DOM;
-
   const weightProps$ = xs.of({
     label: 'Weight',
     units: 'kg',
@@ -68,13 +67,22 @@ function main(sources) {
   const heightSlider = isolate(labeledSlider, '.height');
   const heightSinks = heightSlider(Object.assign({}, sources, { props: heightProps$ }));
 
+  const bmi$ =
+    xs.combine(weightSinks.value, heightSinks.value).map(
+      ([weight, height]) => {
+        const heightInMeters = height * 0.01;
+        return Math.round(weight / (heightInMeters * heightInMeters));
+      });
+
   const vdom$ =
-    xs.combine(weightSinks.DOM, heightSinks.DOM).map(([weightVDOM, heightVDOM]) => {
-      return div([
-        weightVDOM,
-        heightVDOM
-      ]);
-    });
+    xs.combine(bmi$, weightSinks.DOM, heightSinks.DOM).map(
+      ([bmi, weightVDOM, heightVDOM]) => {
+        return div([
+          weightVDOM,
+          heightVDOM,
+          h4('BMI ' + bmi)
+        ]);
+      });
   return {
     DOM: vdom$
   };
