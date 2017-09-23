@@ -1,43 +1,33 @@
-const { h1, h4, a, button, div, makeDOMDriver } = CycleDOM;
+const { h1, h4, a, button, div, label, input, makeDOMDriver } = CycleDOM;
 const { makeHTTPDriver } = CycleHTTPDriver;
 
 function main(sources) {
-  //button click
-  const getEvent$ = sources.DOM.select('.get-first').events('click');
+  const changeWeight$ = sources.DOM.select('.weight').events('input').map(e => e.target.value);
+  const changeHeight$ = sources.DOM.select('.height').events('input').map(e => e.target.value);
 
-  //send rest request
-  const request$ = getEvent$.map(e => (
-    // Prepare data representing a request
-    {
-      url: 'https://jsonplaceholder.typicode.com/users/1',
-      method: 'GET',
-      // This is an arbitrary label so can be referenced later
-      category: 'user-data'
-    }
-  ));
-
-  //receive rest response
-  const response$ = sources.HTTP
-                           // Reference category from above
-                           .select('user-data')
-                           .flatten()
-                           //get json data out of body
-                           .map(response => response.body);
+  const bmi$ = xs.combine(changeWeight$.startWith(70), changeHeight$.startWith(160)).map(([weight, height]) => {
+    const heightInMeters = height * 0.01;
+    // BMI calculation
+    const bmi = Math.round(weight / (heightInMeters * heightInMeters));
+    return { weight: weight, height: height, bmi: bmi };
+  });
 
   // display data
-  const virtualDom$ = response$.startWith({}).map(response =>
+  const virtualDom$ = bmi$.map(state =>
     div([
-      button('.get-first', 'Get First User'),
-      div('.user-details', [
-        h1('.user-name', response.name),
-        h4('.user-email', response.email),
-        a('.user-website', { attrs: { href: response.website } }, response.website)
-      ])
+      div([
+        label('Weight: ' + state.weight + 'kg'),
+        input('.weight', { attrs: { type: 'range', min: 40, max: 160, value: state.weight } })
+      ]),
+      div([
+        label('Height: ' + state.height + 'cm'),
+        input('.height', { attrs: { type: 'range', min: 150, max: 220, value: state.height } })
+      ]),
+      h4('BMI is ' + state.bmi)
     ])
   );
   return {
-    DOM: virtualDom$,
-    HTTP: request$
+    DOM: virtualDom$
   };
 }
 
