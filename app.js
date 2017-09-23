@@ -33,8 +33,7 @@ function view(state$) {
   );
 }
 
-function main(sources) {
-
+function labeledSlider(sources) {
   const props$ = sources.props;
 
   const actions = intent(sources.DOM);
@@ -45,14 +44,19 @@ function main(sources) {
   };
 }
 
+function main(sources) {
+  const props$ = xs.of({
+    label: 'Weight',
+    units: 'kg',
+    min: 40,
+    max: 150,
+    initial: 40
+  });
+  const sinks = labeledSlider(Object.assign(sources, { props: props$ }));
+  return sinks;
+}
+
 Cycle.run(main,
   {
-    DOM: makeDOMDriver('#app'),
-    props: () => xs.of({
-      label: 'Weight',
-      units: 'kg',
-      min: 40,
-      max: 150,
-      initial: 40
-    })
+    DOM: makeDOMDriver('#app')
   });
