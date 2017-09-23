@@ -1,4 +1,5 @@
 const { div, label, input, makeDOMDriver } = CycleDOM;
+const isolate = CycleIsolate.default;
 
 // This is all the input effects or intents (it represents user intentions)
 function intent(domSource) {
@@ -54,9 +55,9 @@ function main(sources) {
     max: 150,
     initial: 40
   });
-  const weightDomSource = isolateSource(sources.DOM, '.weight');
-  const weightSinks = labeledSlider(Object.assign({}, sources, { DOM: weightDomSource, props: weightProps$ }));
-  const weightVDOM$ = isolateSink(weightSinks.DOM, '.weight');
+
+  const weightSlider = isolate(labeledSlider, '.weight');
+  const weightSinks = weightSlider(Object.assign({}, sources, { props: weightProps$ }));
   const heightProps$ = xs.of({
     label: 'Height',
     units: 'cm',
@@ -64,12 +65,11 @@ function main(sources) {
     max: 220,
     initial: 140
   });
-  const heightDomSource = isolateSource(sources.DOM, '.height');
-  const heightSinks = labeledSlider(Object.assign({}, sources, { DOM: heightDomSource, props: heightProps$ }));
-  const heightVDOM$ = isolateSink(heightSinks.DOM, '.height');
+  const heightSlider = isolate(labeledSlider, '.height');
+  const heightSinks = heightSlider(Object.assign({}, sources, { props: heightProps$ }));
 
   const vdom$ =
-    xs.combine(weightVDOM$, heightVDOM$).map(([weightVDOM, heightVDOM]) => {
+    xs.combine(weightSinks.DOM, heightSinks.DOM).map(([weightVDOM, heightVDOM]) => {
       return div([
         weightVDOM,
         heightVDOM
